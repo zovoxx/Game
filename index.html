@@ -325,7 +325,7 @@ const Music = {
 const BAL = {
   itemScale: 1.45,          // item damage per level
   enemyHp: 1.6,             // enemy HP per chapter
-  enemyDmg: 1.24,           // enemy damage per chapter
+  enemyDmg: 1.2,            // enemy damage per chapter
   loopHp: 1.5, loopDmg: 1.15, // per loop, on top of the continuing chapter curve (loop 2 ch1 = 'chapter 8')
   baseHit: 10,              // weapon damage unit at level 1
   playerHp: 100, stamMax: 100, stamRegen: 8, stamKill: 20, stamHit: 2,
@@ -545,13 +545,13 @@ const EN = {
   skeleton: { name: 'Skeleton Knight', hp: 48, dmg: 14, spd: 125, w: 34, h: 76, ai: 'melee', range: 80, windup: .5, cd: 1.4, atkShape: { x: 4, y: -72, w: 84, h: 66 } },
   spiderling: { name: 'Spiderling', hp: 14, dmg: 7, spd: 260, w: 36, h: 22, ai: 'melee', range: 46, windup: .35, cd: 1.1, light: 1, atkShape: { x: 4, y: -26, w: 46, h: 26 } },
   // bosses
-  troll: { name: 'Forest Troll', boss: 1, hp: 1100, dmg: 20, w: 110, h: 196, ai: 'troll', spd: 120 },
-  spider: { name: 'Spider Queen', boss: 1, hp: 1000, dmg: 18, w: 170, h: 100, ai: 'spider', spd: 260 },
-  hydra: { name: 'Swamp Hydra', boss: 1, hp: 1050, dmg: 19, w: 200, h: 160, ai: 'hydra', spd: 0 },
-  king: { name: 'The Fallen King', boss: 1, hp: 1000, dmg: 22, w: 56, h: 124, ai: 'king', spd: 190 },
-  giant: { name: 'Frost Giant', boss: 1, hp: 1100, dmg: 24, w: 130, h: 230, ai: 'giant', spd: 100 },
-  wyrm: { name: 'Magma Wyrm', boss: 1, hp: 1100, dmg: 24, w: 120, h: 120, ai: 'wyrm', spd: 0 },
-  titan: { name: 'Storm Titan', boss: 1, hp: 1300, dmg: 26, w: 200, h: 340, ai: 'titan', spd: 0 },
+  troll: { name: 'Forest Troll', boss: 1, hp: 850, dmg: 17, w: 110, h: 196, ai: 'troll', spd: 120 },
+  spider: { name: 'Spider Queen', boss: 1, hp: 880, dmg: 18, w: 170, h: 100, ai: 'spider', spd: 260 },
+  hydra: { name: 'Swamp Hydra', boss: 1, hp: 920, dmg: 19, w: 200, h: 160, ai: 'hydra', spd: 0 },
+  king: { name: 'The Fallen King', boss: 1, hp: 880, dmg: 22, w: 56, h: 124, ai: 'king', spd: 190 },
+  giant: { name: 'Frost Giant', boss: 1, hp: 960, dmg: 24, w: 130, h: 230, ai: 'giant', spd: 100 },
+  wyrm: { name: 'Magma Wyrm', boss: 1, hp: 960, dmg: 24, w: 120, h: 120, ai: 'wyrm', spd: 0 },
+  titan: { name: 'Storm Titan', boss: 1, hp: 1150, dmg: 26, w: 200, h: 340, ai: 'titan', spd: 0 },
 };
 const ELITE_MODS = {
   armored: { name: 'Armored', color: '#c8d2e0' },
@@ -1209,8 +1209,8 @@ function buildLevel(chapter, loop, opt) {
     return parseChunk(c.id);
   };
 
-  const nNormal = 6 + (chapter >= 3 ? 1 : 0) + (loop > 1 ? 1 : 0);
-  const nGates = chapter <= 2 && loop === 1 ? 2 : 3;
+  const nNormal = 5 + (chapter >= 4 ? 1 : 0) + (loop > 1 ? 1 : 0);
+  const nGates = chapter <= 3 && loop === 1 ? 2 : 3;
   const fork = opt.fork !== undefined ? opt.fork : (chapter > 1 || loop > 1) && Math.random() < 1 / 3;
   // ordered plan
   const plan = [];
@@ -1558,7 +1558,7 @@ function camUpdate(dt, snap) {
   CAM.look = lerp(CAM.look, lookT, 1 - Math.exp(-dt * 2.2));
   let tx = p.x + CAM.look - VIEW_W / 2;
   let ty = p.y - 40 - VIEW_H * 0.56;
-  if (G.bossLock && G.boss && !G.boss.dead) { const bx = G.boss.cx || G.boss.x; tx = lerp(tx, (p.x + bx) / 2 - VIEW_W / 2, .6); }
+  if (G.bossLock && G.boss && !G.boss.dead) { const bx = G.boss.cx || G.boss.x; tx = lerp(tx, (p.x + bx) / 2 - VIEW_W / 2, .75); tx = clamp(tx, p.x - VIEW_W + 190, p.x - 190); }
   if (G.bossLock) { const a = G.bossLock; tx = clamp(tx, a.x0 - 40, a.x1 + 40 - VIEW_W); if (a.x1 - a.x0 + 80 < VIEW_W) tx = (a.x0 + a.x1) / 2 - VIEW_W / 2; ty = Math.min(ty, a.floorY + 60 - VIEW_H); ty = Math.max(ty, a.floorY - VIEW_H + 40 - Math.max(0, (G.pl.y < a.floorY - 300) ? 200 : 0)); }
   tx = clamp(tx, 0, L.w * TILE - VIEW_W); ty = clamp(ty, -VIEW_H * 0.6, L.h * TILE - VIEW_H);
   if (snap) { CAM.x = tx; CAM.y = ty; }
@@ -1676,7 +1676,7 @@ function drawTilesRegion(c, rx, ry, rw, rh) {
     const i = y * w + x, d = L.depth[i] || 1, X = x * TILE, Y = y * TILE;
     const up = isS(x, y - 1), dn = isS(x, y + 1), lf = isS(x - 1, y), rt = isS(x + 1, y);
     const dU = up ? (L.depth[i - w] || d) : 0, dD = dn && y + 1 < L.h ? (L.depth[i + w] || d) : d;
-    const dc = v => mix(P.rock, P.rockD, clamp((v - .6) / 4.2, 0, 1));
+    const dc = v => mix(P.rock, P.rockD, clamp((v - .6) / 4.2, 0, .82));
     const gr = c.createLinearGradient(0, Y, 0, Y + TILE); gr.addColorStop(0, dc((d + dU) / 2)); gr.addColorStop(1, dc((d + dD) / 2));
     c.fillStyle = gr;
     const tlc = !up && !lf, trc = !up && !rt, blc = !dn && !lf, brc = !dn && !rt;
@@ -1915,10 +1915,12 @@ function drawBackground(c) {
     c.globalAlpha = ly.alpha;
     for (let x = ox; x < VIEW_W; x += 1600) c.drawImage(ly.cv, x, VIEW_H - ly.lh + vy + ly.yOff, 1601, ly.lh);
     c.globalAlpha = 1;
-    // fog between layers
-    const fg = c.createLinearGradient(0, VIEW_H * .35, 0, VIEW_H);
-    fg.addColorStop(0, rgba(P.fog, 0)); fg.addColorStop(1, rgba(P.fog, .16));
-    c.fillStyle = fg; c.fillRect(0, 0, VIEW_W, VIEW_H);
+    // one fog band between the far layers and the near layer
+    if (ly === BG.layers[BG.layers.length - 2]) {
+      const fg = c.createLinearGradient(0, VIEW_H * .3, 0, VIEW_H);
+      fg.addColorStop(0, rgba(P.fog, 0)); fg.addColorStop(1, rgba(P.fog, .3));
+      c.fillStyle = fg; c.fillRect(0, VIEW_H * .3, VIEW_W, VIEW_H * .7);
+    }
   }
   // light shafts
   if (key === 'forest' || key === 'castle' || key === 'swamp' || key === 'snow' || key === 'caves') {
@@ -2483,7 +2485,7 @@ function weaponHit(p, a, e, mul, isClone, ox) {
   const heavy = !!mv.breaks || a.charged;
   const kbm = (wd.kbMul || 1);
   const dir = Math.sign(e.x - (ox !== undefined ? ox : p.x)) || a.face;
-  const o = { src: 'weapon', crit, heavy, kbx: dir * (mv.kb || 100) * kbm, kby: mv.launch ? -mv.launch : (mv.kb > 300 ? -160 : -60), wpn: wd, shieldBreak: !!wd.shieldBreak, charged: a.charged, behind, clone: isClone };
+  const o = { src: 'weapon', plungeHit: a.kind === 'plunge', crit, heavy, kbx: dir * (mv.kb || 100) * kbm, kby: mv.launch ? -mv.launch : (mv.kb > 300 ? -160 : -60), wpn: wd, shieldBreak: !!wd.shieldBreak, charged: a.charged, behind, clone: isClone };
   if (wd.type === 'heavy' && wd.kbMul && wd.kbMul < 1) o.kby *= .6;
   if (wd.wallSlam) o.wallSlam = dmg;
   if (wd.stun) o.stun = wd.stun;
@@ -2845,7 +2847,7 @@ function drawPlayerAttackFx(c, p, a, ox, oy, face, alphaMul, colOverride) {
   if (k < a.hs - .02 || k > a.he + .07) return;
   const fade = k > a.he ? 1 - (k - a.he) / .07 : 1;
   c.globalCompositeOperation = 'lighter';
-  c.globalAlpha = .75 * fade * (alphaMul || 1);
+  c.globalAlpha = .8 * fade * (alphaMul || 1);
   if (sh && sh.t === 'arc') {
     const a0 = sh.a0 * D2R, a1 = sh.a1 * D2R;
     const cur = lerp(a0, a1, easeOut(clamp((k - a.hs) / (a.he - a.hs), 0, 1)));
@@ -2854,10 +2856,17 @@ function drawPlayerAttackFx(c, p, a, ox, oy, face, alphaMul, colOverride) {
     const tail = Math.abs(sh.a1 - sh.a0) >= 300 ? Math.sign(span) * Math.min(Math.abs(span), 3.6) : span;
     s0 = s1 - tail;
     c.save(); c.translate(cx, cy); c.scale(face, 1);
-    const gr = c.createRadialGradient(0, 0, R * .35, 0, 0, R);
-    gr.addColorStop(0, rgba(col, 0)); gr.addColorStop(.75, rgba(col, .55)); gr.addColorStop(.97, rgba('#ffffff', .95)); gr.addColorStop(1, rgba('#ffffff', 0));
+    const gr = c.createRadialGradient(0, 0, R * .45, 0, 0, R * 1.02);
+    gr.addColorStop(0, rgba(col, 0)); gr.addColorStop(.62, rgba(col, .18)); gr.addColorStop(.86, rgba(col, .5)); gr.addColorStop(.95, rgba('#ffffff', .95)); gr.addColorStop(1, rgba('#ffffff', 0));
     c.fillStyle = gr;
-    c.beginPath(); c.arc(0, 0, R, Math.min(s0, s1), Math.max(s0, s1)); c.arc(0, 0, R * .4, Math.max(s0, s1), Math.min(s0, s1), true); c.closePath(); c.fill();
+    const segs = 9, base = c.globalAlpha;
+    for (let i = 0; i < segs; i++) {
+      const t0 = i / segs, t1 = (i + 1) / segs;
+      const aa0 = s0 + (s1 - s0) * t0, aa1 = s0 + (s1 - s0) * t1 + (s1 > s0 ? .01 : -.01);
+      const inner = R * (.88 - .34 * t1);
+      c.globalAlpha = base * Math.pow(t1, 1.4);
+      c.beginPath(); c.arc(0, 0, R, Math.min(aa0, aa1), Math.max(aa0, aa1)); c.arc(0, 0, inner, Math.max(aa0, aa1), Math.min(aa0, aa1), true); c.closePath(); c.fill();
+    }
     c.restore();
   } else if (sh && sh.t === 'rect') {
     const ww = sh.w * reach, x = face > 0 ? ox + sh.x : ox - sh.x - ww;
@@ -2865,8 +2874,8 @@ function drawPlayerAttackFx(c, p, a, ox, oy, face, alphaMul, colOverride) {
     const gr = c.createLinearGradient(face > 0 ? x : x + ww, 0, face > 0 ? x + ww : x, 0);
     gr.addColorStop(0, rgba(col, 0)); gr.addColorStop(.8, rgba(col, .5)); gr.addColorStop(1, rgba('#ffffff', .9));
     c.fillStyle = gr;
-    if (sh.h > sh.w) { const g2 = c.createLinearGradient(0, oy + sh.y + sh.h, 0, oy + sh.y); g2.addColorStop(0, rgba(col, 0)); g2.addColorStop(1, rgba('#ffffff', .85)); c.fillStyle = g2; ell(c, ox + (face > 0 ? sh.x + ww / 2 : -sh.x - ww / 2), oy + sh.y + sh.h / 2, ww / 2, sh.h / 2 * (0.4 + e * .6), 0); }
-    else ell(c, x + ww / 2 + face * ww * (e - 1) * .2, oy + sh.y + sh.h / 2, ww / 2, sh.h / 2 * (1 - e * .3), 0);
+    if (sh.h > sh.w) { const g2 = c.createLinearGradient(0, oy + sh.y + sh.h, 0, oy + sh.y); g2.addColorStop(0, rgba(col, 0)); g2.addColorStop(1, rgba('#ffffff', .85)); c.fillStyle = g2; const cx2 = ox + (face > 0 ? sh.x + ww / 2 : -sh.x - ww / 2); poly(c, [cx2 - 3, oy + sh.y + sh.h, cx2 + 3, oy + sh.y + sh.h, cx2 + ww * .45, oy + sh.y + sh.h * .25, cx2, oy + sh.y, cx2 - ww * .45, oy + sh.y + sh.h * .25]); }
+    else { const yc = oy + sh.y + sh.h / 2, h2 = sh.h * .5 * (1 - e * .4), tip = face > 0 ? x + ww : x, hand = face > 0 ? x : x + ww; poly(c, [hand, yc - 2, tip - face * ww * .18, yc - h2, tip, yc, tip - face * ww * .18, yc + h2, hand, yc + 2]); }
   }
   c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
 }
@@ -3981,6 +3990,7 @@ function bossWind(e, base) { return base * (e.firstBoss ? 1.6 : 1) * (e.phase >=
 function bossInit(e, arena) {
   e.arena = arena; e.phase = 1; e.intro = 2.3; e.inv = true; e.firstBoss = true; e.cur = null; e.rest = 1.2; e.hist = [];
   e.floorY = arena.floorY; e.extra = G.lv.loop > 1;
+  e.restMul = { troll: 1.3, spider: 1.12 }[e.type] || 1;
   if (e.extra) { e.phase = 1; }
 }
 function bossPhase(e, ths) {
@@ -4004,12 +4014,20 @@ function bossRun(e, dt, chooser, idleMove) {
   if (e.intro > 0) { e.intro -= dt; e.inv = true; if (e.intro <= 0) e.inv = false; if (e.introMove) e.introMove(e, dt); return; }
   if (e.cur) {
     const a = e.cur; a.t += dt;
-    if (BA[a.n](e, a, dt)) { e.cur = null; e.firstBoss = false; e.state = 'idle'; e.rest = (a.rest !== undefined ? a.rest : .9) * (e.phase >= 2 ? .75 : 1) * (G.lv.loop > 1 ? .8 : 1); }
+    if (BA[a.n](e, a, dt)) { e.cur = null; e.firstBoss = false; e.state = 'idle'; e.rest = (a.rest !== undefined ? a.rest : .9) * (e.restMul || 1) * (e.phase >= 2 ? .75 : 1) * (G.lv.loop > 1 ? .8 : 1); }
   } else {
     e.rest -= dt; e.state = 'idle';
     if (idleMove) idleMove(e, dt);
-    if (e.rest <= 0 && !G.pl.dead) { const n = chooser(e); e.cur = { n, t: 0 }; }
+    if (e.rest <= 0 && !G.pl.dead && bossVisible(e)) { const n = chooser(e); e.cur = { n, t: 0 }; }
   }
+}
+// bosses only start an attack while some part of them is on screen
+function bossVisible(e) {
+  const m = -30;
+  const boxes = e.boxes ? e.boxes(e) : [{ x: e.x - e.w / 2, y: e.y - e.h, w: e.w, h: e.h }];
+  for (const b of boxes) if (b.x + b.w > CAM.x - m && b.x < CAM.x + VIEW_W + m && b.y + b.h > CAM.y - m && b.y < CAM.y + VIEW_H + m) return true;
+  if (e.type === 'wyrm' && e.emerge < .5) return Math.abs(e.x - (CAM.x + VIEW_W / 2)) < VIEW_W / 2 + 60;
+  return false;
 }
 // standard windup bookkeeping so the glint & sound appear
 function bw(e, a, W) { if (!a.init) { a.init = true; sfx('telegraph_big'); } e.state = a.t < W ? 'windup' : 'attack'; e.st = a.t; e.windDur = W; return a.t >= W; }
@@ -4040,7 +4058,7 @@ BA.troll_slam = (e, a, dt) => {
   e.vx = approach(e.vx, 0, 30);
   if (bw(e, a, W) && !a.hit) {
     a.hit = true; shake(13); sfx('hit_heavy'); sfx('explode', .5);
-    hitRect(e, e.face > 0 ? e.x + 20 : e.x - 200, e.y - 130, 180, 130, 1.2);
+    hitRect(e, e.face > 0 ? e.x + 20 : e.x - 200, e.y - 130, 180, 130, 1.1);
     const ix = e.x + e.face * 120;
     for (let i = 0; i < 16; i++) spawnPart(ix + rr(-40, 40), e.y - 4, rr(-200, 200), rr(-400, -100), .7, rr(4, 8), G.lv.pal.rockL, 'chunk');
     G.fx.push(makeShockwave(ix, e.y, 1, e.dmg * .7, 'enemy', 540, '#d8c890'), makeShockwave(ix, e.y, -1, e.dmg * .7, 'enemy', 540, '#d8c890'));
@@ -4052,7 +4070,7 @@ BA.troll_slam = (e, a, dt) => {
 BA.troll_sweep = (e, a, dt) => {
   if (!a.init) { faceP(e); e.vx = 0; }
   const W = bossWind(e, .7);
-  if (bw(e, a, W) && a.t < W + .16) { if (!a.sw) { a.sw = true; sfx('swing_heavy'); } if (!a.hit) a.hit = hitRect(e, e.face > 0 ? e.x - 30 : e.x - 230, e.y - 56, 260, 56, 1); }
+  if (bw(e, a, W) && a.t < W + .16) { if (!a.sw) { a.sw = true; sfx('swing_heavy'); } if (!a.hit) a.hit = hitRect(e, e.face > 0 ? e.x - 30 : e.x - 230, e.y - 56, 260, 56, .85); }
   return a.t >= W + .65;
 };
 BA.troll_log = (e, a, dt) => {
@@ -4252,7 +4270,7 @@ AI.hydra = (e, dt) => {
     if (h.a) { busy++; h.a.t += dt; if (HYDRA[h.k](e, h, h.a, dt)) { h.a = null; h.cd = (h.k === 'breath' ? 5 : h.k === 'bite' ? 3 : 2.4) * (e.phase >= 2 ? .7 : 1); e.firstBoss = false; e.rest = e.phase >= 2 ? .5 : 1.0; } }
   }
   const maxBusy = e.phase >= 2 ? 2 : 1;
-  if (busy < maxBusy && e.rest <= 0 && !G.pl.dead) {
+  if (busy < maxBusy && e.rest <= 0 && !G.pl.dead && bossVisible(e)) {
     const ready = e.heads.filter(h => !h.a && h.cd <= 0);
     if (ready.length) { const h = pick(ready); h.a = { t: 0 }; e.rest = .8; }
   }
@@ -5396,7 +5414,7 @@ function updateItems(dt) {
     it.t += dt;
     if (!it.onGround) { it.vy = Math.min(900, it.vy + 1500 * dt); it.x += it.vx * dt; it.y += it.vy * dt; if (solidAtPx(it.x, it.y - 10)) { it.x -= it.vx * dt; it.vx = 0; } if (it.vy > 0 && groundAtPx(it.x, it.y)) { it.y = Math.floor(it.y / TILE) * TILE; it.onGround = true; } }
     const near = Math.abs(it.x - p.x) < 50 && Math.abs(it.y - p.y) < 70;
-    if (it.item.kind === 'pickup' && it.item.id !== 'forge' && near && it.t > .4 && !p.dead) { applyPickup(it.item); it.dead = true; }
+    if (it.item.kind === 'pickup' && it.item.id !== 'forge' && near && it.t > .4 && !p.dead && !(it.item.id === 'heal' && p.hp >= maxHp(p))) { applyPickup(it.item); it.dead = true; }
     if (it.item.kind === 'pickup' && it.item.id === 'forge' && near && it.t > .4 && !p.dead && !G.modal) { it.dead = true; openForge(); }
     it.near = near || (Math.abs(it.x - p.x) < 90 && Math.abs(it.y - p.y) < 90);
   }
@@ -5889,7 +5907,7 @@ function drawHUD(c) {
   // tutorial hints (no pop-ups: tiny text near start)
   if (G.hintT > 0 && G.lv.chapter === 1 && G.lv.loop === 1 && !G.bossLock) {
     c.globalAlpha = Math.min(1, G.hintT); c.textAlign = 'center'; c.font = `600 ${Math.round(11 * u)}px "Avenir Next", sans-serif`; c.fillStyle = 'rgba(240,230,210,.8)';
-    c.fillText(Touch_.enabled ? 'Left thumb: move · Right: attack, jump, dash · Hold attack & release: charged' : 'A/D move · Space jump · Shift dash · J/K attack (hold & release: charged) · W/S + attack: up / plunge', SCREEN_W / 2, SCREEN_H - Math.max(SAFE.b, 8) - 14 * u - (Touch_.enabled ? 0 : 0));
+    c.fillText(Touch_.enabled ? 'Left thumb: move · Right: attack, jump, dash · Hold attack & release: charged' : 'A/D move · Space jump · Shift dash · J/K attack (hold & release: charged) · W/S + attack: up / plunge', SCREEN_W / 2, Touch_.enabled ? SCREEN_H * .26 : SCREEN_H - Math.max(SAFE.b, 8) - 14 * u);
     c.globalAlpha = 1;
   }
   if (Touch_.enabled) drawTouchControls(c);
@@ -5970,8 +5988,7 @@ function startChapter(ch, loop, opt) {
   camUpdate(1, true); G.camY0 = CAM.y;
   resetAmbient();
   const variant = loop > 1 ? ' · ' + LOOP_VARIANTS[(loop - 2) % LOOP_VARIANTS.length].name : '';
-  G.banner = { t: 3.2, max: 3.2, title: loop > 1 && ch === 1 ? `Loop ${loop}` : `Chapter ${ch} — ${CHAPTERS[ch].name.replace('The ', 'The ')}`, sub: loop > 1 && ch === 1 ? `Chapter 1 — ${CHAPTERS[1].name}${variant}` : (loop > 1 ? `Loop ${loop}${variant}` : CHAPTERS[ch].key === 'forest' ? 'Run begins' : `${CHAPTERS[ch].boss ? 'Survive to the boss' : ''}`) };
-  if (loop === 1 && ch === 1) G.banner.sub = 'Seven chapters. One life.';
+  G.banner = { t: 3.2, max: 3.2, title: loop > 1 && ch === 1 ? `Loop ${loop}` : `Chapter ${ch} — ${CHAPTERS[ch].name}`, sub: loop > 1 ? (ch === 1 ? `Chapter 1 — ${CHAPTERS[1].name}${variant}` : `Loop ${loop}${variant}`) : ch === 1 ? 'Seven chapters. One life.' : `Chapter ${ch} of 7` };
   sfx('chapter');
   Music.boss = false;
   G.fade = 1; G.fadeDir = -1;
@@ -6153,17 +6170,24 @@ function frame(ts) {
   requestAnimationFrame(frame);
   const now = ts / 1000; let dt = lastTs ? Math.min(.05, now - lastTs) : .016; lastTs = now;
   if (dt <= 0) dt = .001;
-  G.rt += dt; fpsAcc += dt; fpsN++; if (fpsAcc > .5) { G.fps = fpsN / fpsAcc; fpsAcc = 0; fpsN = 0; }
+  G.rt += dt; fpsAcc += dt; fpsN++; if (fpsAcc > .5) { G.fps = fpsN / fpsAcc; fpsAcc = 0; fpsN = 0; autoQuality(); }
   Input.frame();
   try {
     if (G.state === 'play') {
       if (Input.pressed.pause) { if (G.modal) closeModal(); else if (G.paused) resumeGame(); else pauseGame(); }
-      if (!G.paused && !G.modal && !G.portrait) step(dt);
+      if (!G.paused && !G.modal && !G.portrait && !G.testFreeze) step(dt);
     } else if (G.state === 'title' && G.lv) { CAM.x += dt * 60; if (CAM.x > G.lv.w * TILE - VIEW_W) CAM.x = 0; CAM.px = Math.round(CAM.x * SCALE); CAM.py = Math.round(CAM.y * SCALE); }
     else if (G.state === 'dead') { }
     render(dt);
     Music.update();
   } catch (err) { console.error(err); if (DEBUG) throw err; }
+}
+// dynamic resolution: if the game keeps running slowly, render fewer pixels (sharpness vs. smoothness)
+function autoQuality() {
+  if (G.state !== 'play' || G.paused || G.modal || G.testFreeze || document.hidden) { G.slowT = 0; return; }
+  const q = G.quality || 1;
+  if (G.fps < 47 && q > .62) { G.slowT = (G.slowT || 0) + .5; if (G.slowT >= 3) { G.slowT = 0; G.quality = Math.max(.62, q - .19); resize(); } }
+  else G.slowT = 0;
 }
 function step(dt) {
   G.hoverLock = Math.max(0, (G.hoverLock || 0) - dt);
@@ -6341,7 +6365,7 @@ function drawControlsPic() {
 }
 function resize() {
   SCREEN_W = window.innerWidth; SCREEN_H = window.innerHeight;
-  DPR = Math.min(2, window.devicePixelRatio || 1);
+  DPR = Math.min(2, window.devicePixelRatio || 1) * (G.quality || 1);
   cv.width = Math.round(SCREEN_W * DPR); cv.height = Math.round(SCREEN_H * DPR);
   cv.style.width = SCREEN_W + 'px'; cv.style.height = SCREEN_H + 'px';
   const oldScale = SCALE;
