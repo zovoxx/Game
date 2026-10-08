@@ -8,8 +8,9 @@ Everything is in a single self-contained `index.html`: plain HTML, JavaScript an
 
 - **Locally:** open `index.html` in a browser.
 - **GitHub Pages:** in the repository settings, go to *Pages*, choose *Deploy from a branch*, pick the branch and `/ (root)`, and open the URL it gives you.
-- **iPad:** use the *Fullscreen* button on the title screen or in the pause menu.
-- **iPhone:** Safari has no fullscreen API, so tap *Share › Add to Home Screen*. The Home Screen version opens without browser bars.
+- **iPad and iPhone:** tap *Share › Add to Home Screen*, then open Sevenfold from the Home Screen. It runs fullscreen with no browser bars. The in-game *Fullscreen* button shows these steps.
+  - The game deliberately doesn't use Safari's own fullscreen mode on iPad. In that mode, Safari reads fast taps at different heights as typing on a fake keyboard. It then keeps pausing the game with "It looks like you are typing while in full screen", and web pages can't turn that check off.
+  - On desktop and Android, the *Fullscreen* button uses normal browser fullscreen.
 
 Audio starts after the first tap or key press, which iOS requires. The sound on/off setting is the only thing the game saves.
 

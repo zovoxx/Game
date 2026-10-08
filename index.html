@@ -44,7 +44,10 @@ h1.logo { font-family: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, s
 .panel { background: linear-gradient(#1c1822f2, #120f16f2); border: 1px solid rgba(255,255,255,.12); border-radius: 14px;
   padding: 1em 1.4em; box-shadow: 0 10px 40px rgba(0,0,0,.6); max-height: 100%; overflow: auto; box-sizing: border-box; }
 .panel h2 { font-family: Palatino, Georgia, serif; margin: .1em 0 .5em; letter-spacing: .12em; font-weight: 700; }
-#pauseOv, #deadOv, #controlsOv { background: rgba(4,5,8,.66); }
+#pauseOv, #deadOv, #controlsOv, #fsHelp { background: rgba(4,5,8,.66); }
+#fsHelp { z-index: 30; }
+.steps { text-align: left; margin: .2em 0 .6em; padding-left: 1.4em; line-height: 1.45; }
+.steps li { margin: .35em 0; }
 .row { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; }
 .buildlist { display: flex; flex-wrap: wrap; gap: .4em; justify-content: center; margin: .4em 0 .8em; }
 .bitem { display: flex; align-items: center; gap: .4em; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
@@ -97,9 +100,19 @@ h1.logo { font-family: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, s
   <div class="sub">SEVEN CHAPTERS · ONE LIFE · NO END</div>
   <button id="bPlay" class="big">Play</button>
   <div class="row"><button id="bFS" class="ghost">Fullscreen</button><button id="bCtl" class="ghost">Controls</button><button id="bSnd" class="ghost">Sound: On</button></div>
-  <div id="a2hs" class="tip">Tip: for fullscreen on iPhone, tap Share &rsaquo; Add to Home Screen.</div>
+  <div id="a2hs" class="tip">For fullscreen on iPad &amp; iPhone, add Sevenfold to your Home Screen (Share &rsaquo; Add to Home Screen).</div>
 </div>
 <div id="controlsOv" class="ov center"><div class="panel" style="text-align:center"><h2>Controls</h2><canvas id="ctlPic"></canvas><div class="tip" id="ctlKeys">Keyboard: A/D move · W/S aim · Space jump · Shift dash · J/K weapons · U/I skills · O power · E inspect · Esc pause</div><button id="bCtlClose">Got it</button></div></div>
+<div id="fsHelp" class="ov center"><div class="panel" style="max-width:min(560px,92vw)">
+  <h2 style="text-align:center">Fullscreen on iPad &amp; iPhone</h2>
+  <ol class="steps">
+    <li>Tap <b>Share</b> <svg viewBox="0 0 24 24" width="1.25em" height="1.25em" style="vertical-align:-.28em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M7 10H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-1"/></svg> in Safari's toolbar.</li>
+    <li>Choose <b>Add to Home Screen</b>. If you see <b>Open as Web App</b>, leave it on.</li>
+    <li>Open <b>Sevenfold</b> from your Home Screen. It runs fullscreen, with no browser bars and no Safari pop-ups.</li>
+  </ol>
+  <div class="tip">Safari's own fullscreen mode isn't used on iPad or iPhone. It mistakes fast tapping for typing and keeps interrupting the game with a warning.</div>
+  <div style="text-align:center"><button id="bFsHelpClose">Got it</button></div>
+</div></div>
 <div id="pauseOv" class="ov center"><div class="panel" style="text-align:center;min-width:min(520px,88vw)">
   <h2 id="pChap">Paused</h2>
   <div class="row"><button id="bResume" class="big" style="font-size:1.2em">Resume</button></div>
@@ -6174,7 +6187,10 @@ function frame(ts) {
   Input.frame();
   try {
     if (G.state === 'play') {
-      if (Input.pressed.pause) { if (G.modal) closeModal(); else if (G.paused) resumeGame(); else pauseGame(); }
+      if (Input.pressed.pause) {
+        const ov = ['fsHelp', 'controlsOv'].map($).find(o => o.classList.contains('show'));
+        if (ov) ov.classList.remove('show'); else if (G.modal) closeModal(); else if (G.paused) resumeGame(); else pauseGame();
+      }
       if (!G.paused && !G.modal && !G.portrait && !G.testFreeze) step(dt);
     } else if (G.state === 'title' && G.lv) { CAM.x += dt * 60; if (CAM.x > G.lv.w * TILE - VIEW_W) CAM.x = 0; CAM.px = Math.round(CAM.x * SCALE); CAM.py = Math.round(CAM.y * SCALE); }
     else if (G.state === 'dead') { }
@@ -6314,8 +6330,17 @@ function showTitle() {
   $('title').classList.add('show');
 }
 // fullscreen
+// iPhone and iPad (iPadOS also reports itself as a touch "Mac"). On iPadOS, Safari's element fullscreen runs an
+// anti-phishing touch check that reads fast taps at different heights as typing on a fake keyboard, and keeps
+// interrupting with "It looks like you are typing while in full screen". Pages cannot opt out of it, so on these
+// devices the game never calls requestFullscreen: fullscreen comes from the Home Screen web app instead.
+const IS_IOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function isStandalone() { return !!(window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches); }
+function canUseFullscreenApi() { return fsSupported() && !IS_IOS; }
+function showFsHelp() { $('fsHelp').classList.add('show'); }
 function fsSupported() { const d = document.documentElement; return !!((d.requestFullscreen || d.webkitRequestFullscreen) && (document.fullscreenEnabled || document.webkitFullscreenEnabled)); }
 function toggleFS() {
+  if (!canUseFullscreenApi()) { showFsHelp(); return; }
   const d = document.documentElement;
   try {
     if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
@@ -6323,10 +6348,12 @@ function toggleFS() {
   } catch (e) { }
 }
 function setupScreens() {
-  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-  const iOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (!fsSupported()) { $('bFS').style.display = 'none'; $('bPFS').style.display = 'none'; }
-  $('a2hs').style.display = (!fsSupported() && iOS && !isStandalone) ? '' : 'none';
+  const standalone = isStandalone();
+  // Fullscreen button: real Fullscreen API on desktop/Android; on iPhone/iPad it explains the Home Screen route.
+  const fsBtn = canUseFullscreenApi() || (IS_IOS && !standalone);
+  for (const id of ['bFS', 'bPFS']) $(id).style.display = fsBtn ? '' : 'none';
+  $('a2hs').style.display = IS_IOS && !standalone ? '' : 'none';
+  $('bFsHelpClose').onclick = () => { sfx('ui'); $('fsHelp').classList.remove('show'); };
   $('bPlay').onclick = () => { AU.unlock(); sfx('ui'); newRun(); };
   $('bFS').onclick = () => { AU.unlock(); toggleFS(); };
   $('bPFS').onclick = () => toggleFS();
